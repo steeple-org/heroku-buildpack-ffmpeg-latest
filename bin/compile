@@ -22,3 +22,10 @@ echo "exporting PATH" | indent
 PROFILE_PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
 mkdir -p $(dirname $PROFILE_PATH)
 echo 'export PATH="$PATH:${HOME}/vendor/ffmpeg"' >> $PROFILE_PATH
+
+echo "checking executable" | indent
+if ! ffmpeg -version
+then
+  echo "executable is corrupt !" | indent
+  exit 1
+fi
