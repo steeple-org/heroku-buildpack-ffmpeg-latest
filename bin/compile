@@ -18,15 +18,14 @@ mkdir -p ffmpeg
 cd ffmpeg
 curl -L --silent $DOWNLOAD_URL | tar xJ --strip-components=1
 
-echo "exporting PATH" | indent
-PROFILE_PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
-mkdir -p $(dirname $PROFILE_PATH)
-echo 'export PATH="$PATH:${HOME}/vendor/ffmpeg"' >> $PROFILE_PATH
-export PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
-
 echo "checking transcode" | indent
 if ! ffmpeg -y -i ./medias/test_transcoding.webm ./medias/test_transcoding.mp4
 then
   echo "ffmpeg can't transcode !" | indent
   exit 1
 fi
+
+echo "exporting PATH" | indent
+PROFILE_PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
+mkdir -p $(dirname $PROFILE_PATH)
+echo 'export PATH="$PATH:${HOME}/vendor/ffmpeg"' >> $PROFILE_PATH
