@@ -22,3 +22,10 @@ echo "exporting PATH" | indent
 PROFILE_PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
 mkdir -p $(dirname $PROFILE_PATH)
 echo 'export PATH="$PATH:${HOME}/vendor/ffmpeg"' >> $PROFILE_PATH
+
+echo "checking transcode" | indent
+if ! ffmpeg -y -i ./medias/test_transcoding.webm ./medias/test_transcoding.mp4
+then
+  echo "ffmpeg can't transcode !" | indent
+  exit 1
+fi
