@@ -27,7 +27,7 @@ export PATH="$PATH:$BUILD_DIR/vendor/ffmpeg"
 cd
 
 echo "checking transcode" | indent
-if ! ffmpeg -y -i $BUILD_DIR/medias/test_transcoding.webm $BUILD_DIR/medias/test_transcoding.mp4
+if ! ffmpeg -y -i $CACHE_DIR/medias/test_transcoding.webm $CACHE_DIR/medias/test_transcoding.mp4
 then
   echo "ffmpeg can't transcode !" | indent
   exit 1
