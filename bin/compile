@@ -6,6 +6,7 @@ indent() {
 
 echo "-----> Install ffmpeg"
 BUILD_DIR=$1
+BP_DIR=$(cd "$(dirname "${0:-}")"; cd ..; pwd)
 VENDOR_DIR="vendor"
 DOWNLOAD_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
 
@@ -22,3 +23,12 @@ echo "exporting PATH" | indent
 PROFILE_PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
 mkdir -p $(dirname $PROFILE_PATH)
 echo 'export PATH="$PATH:${HOME}/vendor/ffmpeg"' >> $PROFILE_PATH
+export PATH="$PATH:$BUILD_DIR/vendor/ffmpeg"
+
+echo "checking transcode" | indent
+if ! ffmpeg -y -i $BP_DIR/bin/medias/test_transcoding.webm $BP_DIR/bin/medias/test_transcoding.mp4
+then
+  echo "ffmpeg can't transcode !" | indent
+  exit 1
+fi
+
