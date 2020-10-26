@@ -8,16 +8,19 @@ echo "-----> Install ffmpeg"
 BUILD_DIR=$1
 BP_DIR=$(cd "$(dirname "${0:-}")"; cd ..; pwd)
 VENDOR_DIR="vendor"
-DOWNLOAD_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
+DOWNLOAD_URL="https://github.com/steeple-dev/ffmpeg-stable-build.git"
+GIT_DIR="ffmpeg-stable-build"
 
 echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
 
 cd $BUILD_DIR
+git clone $DOWNLOAD_URL
 mkdir -p $VENDOR_DIR
 cd $VENDOR_DIR
 mkdir -p ffmpeg
 cd ffmpeg
-curl -L --silent $DOWNLOAD_URL | tar xJ --strip-components=1
+mv $BUILD_DIR/$GIT_DIR/ffmpeg-release-amd64-static.tar.xz .
+tar -xJf ffmpeg-release-amd64-static.tar.xz --strip-components=1
 
 echo "exporting PATH" | indent
 PROFILE_PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
