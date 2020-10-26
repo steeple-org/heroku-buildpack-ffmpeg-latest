@@ -19,8 +19,8 @@ mkdir -p $VENDOR_DIR
 cd $VENDOR_DIR
 mkdir -p ffmpeg
 cd ffmpeg
-mv $BUILD_DIR/$GIT_DIR/ffmpeg-release-amd64-static.tar.xz .
-tar -xJf ffmpeg-release-amd64-static.tar.xz --strip-components=1
+tar -xJf $BUILD_DIR/$GIT_DIR/ffmpeg-release-amd64-static.tar.xz --strip-components=1
+rm -rf $BUILD_DIR/$GIT_DIR
 
 echo "exporting PATH" | indent
 PROFILE_PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
