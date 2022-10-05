@@ -1,5 +1,11 @@
-#!/bin/sh
+#!/bin/bash
 
-# this pack is valid for all apps
-echo "ffmpeg"
+# reference: https://devcenter.heroku.com/articles/buildpack-api#bin-detect
+
+set -o errexit
+set -o nounset
+
+# This buildpack applies to any app.
+
+echo "FFmpeg"
 exit 0

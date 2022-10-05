@@ -1,34 +1,104 @@
-#!/bin/sh
+#!/bin/bash
 
-indent() {
+# reference: https://devcenter.heroku.com/articles/buildpack-api#bin-compile
+
+set -o errexit
+set -o nounset
+
+####################################################################################################
+
+# Update the following values to update FFmpeg installed by the buildpack.
+
+RELEASE_VERSION="5.1.1"
+RELEASE_URL="https://github.com/steeple-org/ffmpeg-bin/releases/download/v$RELEASE_VERSION/ffmpeg-$RELEASE_VERSION.tar.xz"
+RELEASE_MD5="4cbbe32169c4ec79a0969d5c92cbcaff"
+
+####################################################################################################
+
+indent () {
   sed -u 's/^/       /'
 }
 
-echo "-----> Install ffmpeg"
-BUILD_DIR=$1
-BP_DIR=$(cd "$(dirname "${0:-}")"; cd ..; pwd)
-VENDOR_DIR="vendor"
-DOWNLOAD_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
+echo_indent () {
+  echo "$@" | indent
+}
 
-echo "DOWNLOAD_URL = " $DOWNLOAD_URL | indent
+warn_indent () {
+  echo "$@" | indent >&2
+}
 
-cd $BUILD_DIR
-mkdir -p $VENDOR_DIR
-cd $VENDOR_DIR
-mkdir -p ffmpeg
-cd ffmpeg
-curl -L --silent $DOWNLOAD_URL | tar xJ --strip-components=1
+BUILD_DIR="$1"
 
-echo "exporting PATH" | indent
-PROFILE_PATH="$BUILD_DIR/.profile.d/ffmpeg.sh"
-mkdir -p $(dirname $PROFILE_PATH)
-echo 'export PATH="$PATH:${HOME}/vendor/ffmpeg"' >> $PROFILE_PATH
-export PATH="$PATH:$BUILD_DIR/vendor/ffmpeg"
+PROFILE_DIR="$BUILD_DIR/.profile.d"
+mkdir -p "$PROFILE_DIR"
 
-echo "checking transcode" | indent
-if ! ffmpeg -y -i $BP_DIR/bin/medias/test_transcoding.webm $BP_DIR/bin/medias/test_transcoding.mp4
+INSTALL_RELPATH=vendor/ffmpeg
+RUN_TIME_INSTALL_DIR="\$HOME/$INSTALL_RELPATH"
+BLD_TIME_INSTALL_DIR="$BUILD_DIR/$INSTALL_RELPATH"
+mkdir -p "$BLD_TIME_INSTALL_DIR"
+
+####################################################################################################
+
+echo "-----> Install FFmpeg $RELEASE_VERSION"
+
+####################################################################################################
+
+export TMPDIR="$(mktemp -d)"
+
+# The name doesn't really matter, we just need a common reference for the following steps.
+RELEASE_PATH="$TMPDIR/ffmpeg.tar.xz"
+
+#---------------------------------------------------------------------------------------------------
+
+pushd "$TMPDIR" > /dev/null
+
+#---------------------------------------------------------------------------------------------------
+
+echo_indent "Download release"
+
+curl \
+  --silent \
+  --show-error \
+  --location \
+  --output "$RELEASE_PATH" \
+  "$RELEASE_URL"
+
+#---------------------------------------------------------------------------------------------------
+
+echo_indent "Verify release"
+
+echo "$RELEASE_MD5  $RELEASE_PATH" | md5sum --check - > /dev/null
+
+#---------------------------------------------------------------------------------------------------
+
+echo_indent "Install release"
+
+tar xf "$RELEASE_PATH" --strip-components=1 --directory="$BLD_TIME_INSTALL_DIR"
+
+#---------------------------------------------------------------------------------------------------
+
+popd > /dev/null
+
+#---------------------------------------------------------------------------------------------------
+
+echo_indent "Check install"
+
+if ! "$BLD_TIME_INSTALL_DIR/ffmpeg" -v warning -i fixtures/test_transcoding.webm "$TMPDIR/foo.mp4"
 then
-  echo "ffmpeg can't transcode !" | indent
+  warn_indent "FFmpeg can't transcode !"
   exit 1
 fi
 
+#---------------------------------------------------------------------------------------------------
+
+rm -r "$TMPDIR"
+
+####################################################################################################
+
+echo_indent 'Update $PATH'
+
+echo 'export PATH="$PATH:'"$RUN_TIME_INSTALL_DIR"'"' >> "$PROFILE_DIR/ffmpeg.sh"
+
+####################################################################################################
+
+echo_indent "Install complete!"
